@@ -18,6 +18,7 @@ func main() {
 	db := getDB(os.Getenv("MYSQL_USERNAME"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
 
 	r.HandleFunc("/health", web.Health(db)).Methods("GET", "HEAD")
+	r.HandleFunc("/api/webhook", web.Hook()).Methods("POST")
 
 	log.Println("Running web server at port 8000")
 	http.ListenAndServe(":8000", r)
