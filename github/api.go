@@ -43,7 +43,7 @@ func (a *API) UpdateStatus(id, state, targetURL, description, context string) er
 
 // AuthorizationLink returns link to grant application access token
 func (a *API) AuthorizationLink() string {
-	return fmt.Sprintf("%s%s?client_id=%s&scope=repo:status&redirect_uri=%s", baseURL, "/login/oauth/authorize", a.clientID, a.redirectURI)
+	return fmt.Sprintf("%s%s?client_id=%s&scope=repo:status&redirect_uri=%s/api/oauth/callback", baseURL, "/login/oauth/authorize", a.clientID, a.redirectURI)
 }
 
 func post(path string) {

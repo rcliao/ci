@@ -24,6 +24,13 @@ func Health(db *sql.DB) http.HandlerFunc {
 	})
 }
 
+// Authorize redirects the user to Github authorization page
+func Authorize(api *github.API) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, api.AuthorizationLink(), 302)
+	})
+}
+
 // Hook handles the webhook from Github API call
 func Hook() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

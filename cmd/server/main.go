@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/rcliao/e2etest/github"
 	"github.com/rcliao/e2etest/web"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -16,8 +17,15 @@ import (
 func main() {
 	r := mux.NewRouter()
 	db := getDB(os.Getenv("MYSQL_USERNAME"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"))
+	api := github.NewAPI(
+		os.Getenv("GITHUB_CLIENT_ID"),
+		os.Getenv("GITHUB_CLIENT_SECRET"),
+		os.Getenv("PUBLIC_URL"),
+		"",
+	)
 
 	r.HandleFunc("/health", web.Health(db)).Methods("GET", "HEAD")
+	r.HandleFunc("/api/authorize", web.Authorize(api)).Methods("GET")
 	r.HandleFunc("/api/webhook", web.Hook()).Methods("POST")
 
 	log.Println("Running web server at port 8000")
