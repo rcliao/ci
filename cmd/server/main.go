@@ -26,6 +26,7 @@ func main() {
 
 	r.HandleFunc("/health", web.Health(db)).Methods("GET", "HEAD")
 	r.HandleFunc("/api/authorize", web.Authorize(api)).Methods("GET")
+	r.HandleFunc("/api/github/callback", web.GetToken(api)).Methods("GET")
 	r.HandleFunc("/api/webhook", web.Hook()).Methods("POST")
 
 	log.Println("Running web server at port 8000")

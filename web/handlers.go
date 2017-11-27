@@ -31,6 +31,12 @@ func Authorize(api *github.API) http.HandlerFunc {
 	})
 }
 
+// GetToken uses Github API to get access token and store token into DB
+func GetToken(api *github.API) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	})
+}
+
 // Hook handles the webhook from Github API call
 func Hook() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

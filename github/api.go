@@ -2,7 +2,8 @@ package github
 
 import "fmt"
 
-var baseURL = "https://api.github.com"
+var apiBaseURL = "https://api.github.com"
+var baseURL = "https://github.com"
 
 // Event captures the data we want sent by Github webhook
 type Event struct {
@@ -43,7 +44,12 @@ func (a *API) UpdateStatus(id, state, targetURL, description, context string) er
 
 // AuthorizationLink returns link to grant application access token
 func (a *API) AuthorizationLink() string {
-	return fmt.Sprintf("%s%s?client_id=%s&scope=repo:status&redirect_uri=%s/api/oauth/callback", baseURL, "/login/oauth/authorize", a.clientID, a.redirectURI)
+	return fmt.Sprintf("%s%s?client_id=%s&scope=repo:status&redirect_uri=%s/api/github/callback", baseURL, "/login/oauth/authorize", a.clientID, a.redirectURI)
+}
+
+// GetToken uses code from AuthorizationLink to get access token for Github API
+func (a *API) GetToken(code string) string {
+	return ""
 }
 
 func post(path string) {
