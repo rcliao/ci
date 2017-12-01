@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/rcliao/e2etest/github"
@@ -34,6 +35,9 @@ func Authorize(api *github.API) http.HandlerFunc {
 // GetToken uses Github API to get access token and store token into DB
 func GetToken(api *github.API) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		code := r.URL.Query().Get("code")
+		log.Println("code", code)
+		log.Println("token", api.GetToken(code))
 	})
 }
 
