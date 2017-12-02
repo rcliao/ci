@@ -67,7 +67,13 @@ type Pipeline interface {
 
 // StatusDAO defines the interaction status with DB
 type StatusDAO interface {
-	Update(status Status) error
-	Store(status Status) error
-	Get(ID string) Status
+	UpdateStatus(status Status) error
+	CreateStatus(status Status) error
+	GetStatus(ID string) Status
+}
+
+// TokenDAO defines the services layer need for status
+type TokenDAO interface {
+	StoreToken(token string) error
+	GetToken() string
 }

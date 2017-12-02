@@ -51,12 +51,11 @@ type API struct {
 	clientID     string
 	clientSecret string
 	redirectURI  string
-	token        string
 }
 
 // NewAPI is constructor pattern to create API object
-func NewAPI(clientID, clientSecret, redirectURI, token string) *API {
-	return &API{clientID, clientSecret, redirectURI, token}
+func NewAPI(clientID, clientSecret, redirectURI string) *API {
+	return &API{clientID, clientSecret, redirectURI}
 }
 
 // UpdateStatus sends the request to create/update status on Github

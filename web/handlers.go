@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rcliao/e2etest"
 	"github.com/rcliao/e2etest/github"
 )
 
@@ -33,11 +34,29 @@ func Authorize(api *github.API) http.HandlerFunc {
 }
 
 // GetToken uses Github API to get access token and store token into DB
-func GetToken(api *github.API) http.HandlerFunc {
+func GetToken(api *github.API, tokenDao e2etest.TokenDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
-		log.Println("code", code)
-		log.Println("token", api.GetToken(code))
+		token := api.GetToken(code)
+		if token == "" {
+			http.Error(
+				w,
+				"failed to grab token",
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		err := tokenDao.StoreToken(token)
+		if err != nil {
+			log.Println(err)
+			http.Error(
+				w,
+				"failed to store token",
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		fmt.Fprintln(w, "Successfuly retrieve and store token. CI is ready.")
 	})
 }
 
@@ -57,6 +76,6 @@ func Hook() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("Got webhook", event)
+		log.Println("Got webhook", event)
 	})
 }
