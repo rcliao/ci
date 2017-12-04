@@ -48,7 +48,7 @@ func GetToken(api *github.API, tokenDao e2etest.TokenDAO) http.HandlerFunc {
 		}
 		err := tokenDao.StoreToken(token)
 		if err != nil {
-			log.Println(err)
+			log.Println("has error storing token to DB", err)
 			http.Error(
 				w,
 				"failed to store token",
@@ -61,7 +61,7 @@ func GetToken(api *github.API, tokenDao e2etest.TokenDAO) http.HandlerFunc {
 }
 
 // Hook handles the webhook from Github API call
-func Hook() http.HandlerFunc {
+func Hook(api *github.API, tokenDao e2etest.TokenDAO, publicURL string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 
@@ -72,6 +72,28 @@ func Hook() http.HandlerFunc {
 				w,
 				"failed to parse body as JSON",
 				http.StatusBadRequest,
+			)
+			return
+		}
+		ID := event.Head.ID
+		name := event.Repository.Name
+		owner := event.Repository.Owner.Name
+
+		pendingStatus := e2etest.Status{
+			ID:          ID,
+			State:       "pending",
+			TargetURL:   publicURL + "/status/" + ID,
+			Description: "Test description ... starting to build",
+			Context:     "CS-3222 TA CI",
+		}
+		token := tokenDao.GetToken()
+		err = api.CreateStatus(token, owner, name, pendingStatus)
+		if err != nil {
+			log.Println("has error creating status using Github API", err)
+			http.Error(
+				w,
+				"failed to create status",
+				http.StatusInternalServerError,
 			)
 			return
 		}

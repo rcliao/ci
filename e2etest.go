@@ -11,7 +11,7 @@ type Result struct {
 type Status struct {
 	ID          string
 	State       string
-	TargerURL   string
+	TargetURL   string
 	Description string
 	Context     string
 }

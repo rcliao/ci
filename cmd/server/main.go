@@ -18,17 +18,18 @@ import (
 func main() {
 	r := mux.NewRouter()
 	db := getDB(os.Getenv("MYSQL_USERNAME"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"), os.Getenv("MYSQL_DATABASE"))
+	publicURL := os.Getenv("PUBLIC_URL")
 	api := github.NewAPI(
 		os.Getenv("GITHUB_CLIENT_ID"),
 		os.Getenv("GITHUB_CLIENT_SECRET"),
-		os.Getenv("PUBLIC_URL"),
+		publicURL,
 	)
 	service := dao.New(db)
 
 	r.HandleFunc("/health", web.Health(db)).Methods("GET", "HEAD")
 	r.HandleFunc("/api/authorize", web.Authorize(api)).Methods("GET")
 	r.HandleFunc("/api/github/callback", web.GetToken(api, service)).Methods("GET")
-	r.HandleFunc("/api/webhook", web.Hook()).Methods("POST")
+	r.HandleFunc("/api/webhook", web.Hook(api, service, publicURL)).Methods("POST")
 
 	log.Println("Running web server at port 8000")
 	http.ListenAndServe(":8000", r)

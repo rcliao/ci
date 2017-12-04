@@ -4,12 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/rcliao/e2etest"
 )
 
 var apiBaseURL = "https://api.github.com"
 var baseURL = "https://github.com"
+
+var jsonReqHeaders = map[string]string{
+	"Accept":  "application/json",
+	"Content": "application/json",
+}
 
 // Event captures the data we want sent by Github webhook
 type Event struct {
@@ -44,6 +52,13 @@ type authResponseDTO struct {
 
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
+}
+
+type statusDTO struct {
+	State       string `json:"state"`
+	TargetURL   string `json:"target_url"`
+	Description string `json:"description"`
+	Context     string `json:"Context"`
 }
 
 // API implements Github related interaction
@@ -92,15 +107,7 @@ func (a *API) GetToken(code string) string {
 		fmt.Println("Failed to marshal auth token", err)
 		return ""
 	}
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
-	if err != nil {
-		fmt.Println("Failed to construct request for getting token", err)
-		return ""
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := request("POST", apiURL, jsonReqHeaders, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		fmt.Println("Failed to get response from Github", err)
 		return ""
@@ -121,4 +128,54 @@ func (a *API) GetToken(code string) string {
 		fmt.Println("Failed to retrieve token due to Github error", accessResp)
 	}
 	return accessResp.AccessToken
+}
+
+// CreateStatus creates a new status for a commit on Github
+func (a *API) CreateStatus(accessToken, owner, repo string, status e2etest.Status) error {
+	url := fmt.Sprintf(
+		"%s/repos/%s/%s/statuses/%s",
+		apiBaseURL,
+		owner,
+		repo,
+		status.ID,
+	)
+	body := statusDTO{
+		State:       status.State,
+		TargetURL:   status.TargetURL,
+		Description: status.Description,
+		Context:     status.Context,
+	}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		fmt.Println("Failed to marshal status", err)
+		return err
+	}
+	headers := map[string]string{}
+	for k, v := range jsonReqHeaders {
+		headers[k] = v
+	}
+	headers["Authorization"] = fmt.Sprintf("token %s", accessToken)
+	resp, err := request("POST", url, headers, bytes.NewBuffer(jsonBody))
+	if resp.StatusCode > 201 {
+		defer resp.Body.Close()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Failed to read body from Github get token response", err)
+			return err
+		}
+		return fmt.Errorf("Got non 200 response from Github.\nBody: %s", string(b))
+	}
+	return nil
+}
+
+func request(method, url string, headers map[string]string, body io.Reader) (resp *http.Response, err error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return resp, err
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	client := &http.Client{}
+	return client.Do(req)
 }
