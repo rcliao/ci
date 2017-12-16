@@ -27,6 +27,11 @@ func (s *Service) CreateStatus(status e2etest.Status) error {
 	return nil
 }
 
+// Log appends log information to specific status by ID
+func (s *Service) Log(ID, data string) {
+
+}
+
 // GetStatus create a new status to MySQL DB
 func (s *Service) GetStatus(status e2etest.Status) e2etest.Status {
 	return e2etest.Status{}

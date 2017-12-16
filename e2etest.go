@@ -69,6 +69,7 @@ type Pipeline interface {
 type StatusDAO interface {
 	UpdateStatus(status Status) error
 	CreateStatus(status Status) error
+	Log(ID, data string)
 	GetStatus(ID string) Status
 }
 
