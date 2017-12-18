@@ -1,7 +1,9 @@
 package github
 
 import (
+	"fmt"
 	"log"
+	"math/rand"
 	"os/exec"
 
 	"github.com/rcliao/e2etest"
@@ -14,9 +16,23 @@ type Pipeline struct {
 	statusDao e2etest.StatusDAO
 }
 
+// NewPipeline is constructor for creating new pipeline
+func NewPipeline(statusDao e2etest.StatusDAO, ID string) *Pipeline {
+	return &Pipeline{
+		ID:        ID,
+		tempDir:   randString(32),
+		statusDao: statusDao,
+	}
+}
+
 // Clone will clone the repository down to the temp dir
-func (p *Pipeline) Clone(URL string) error {
-	commands := []string{"git", "clone", URL, p.tempDir}
+func (p *Pipeline) Clone(owner, name string) error {
+	commands := []string{
+		"git",
+		"clone",
+		fmt.Sprintf("git@github.com:%s/%s.git", owner, name),
+		p.tempDir,
+	}
 	cmd := exec.Command(commands[0], commands[1:]...)
 	output, err := cmd.Output()
 	if err == nil {
@@ -49,4 +65,14 @@ func (p *Pipeline) Start(Env []string, command string, stop <-chan bool) error {
 // Test runs `test.sh` to test
 func (p *Pipeline) Test(Env []string) (e2etest.Result, error) {
 	panic("not implemented")
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }

@@ -17,10 +17,10 @@ type Status struct {
 }
 
 // Main is the main method to run though pipeline
-func Main(pipeline Pipeline, url, hash string) (Result, error) {
+func Main(pipeline Pipeline, owner, name, hash string) (Result, error) {
 	result := Result{}
 
-	err := pipeline.Clone(url)
+	err := pipeline.Clone(owner, name)
 	if err != nil {
 		return result, err
 	}
@@ -58,7 +58,7 @@ func Main(pipeline Pipeline, url, hash string) (Result, error) {
 
 // Pipeline defines each step in the test
 type Pipeline interface {
-	Clone(URL string) error
+	Clone(owner, name string) error
 	Build(command string) error
 	Env() []string
 	Start(Env []string, command string, stop <-chan bool) error

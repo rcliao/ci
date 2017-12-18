@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/rcliao/e2etest"
+	"github.com/rcliao/e2etest/dao"
 	"github.com/rcliao/e2etest/github"
 )
 
@@ -61,7 +62,7 @@ func GetToken(api *github.API, tokenDao e2etest.TokenDAO) http.HandlerFunc {
 }
 
 // Hook handles the webhook from Github API call
-func Hook(api *github.API, tokenDao e2etest.TokenDAO, publicURL string) http.HandlerFunc {
+func Hook(api *github.API, tokenDao dao.Service, publicURL string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 
@@ -78,6 +79,8 @@ func Hook(api *github.API, tokenDao e2etest.TokenDAO, publicURL string) http.Han
 		ID := event.Head.ID
 		name := event.Repository.Name
 		owner := event.Repository.Owner.Name
+
+		pipeline := github.NewPipeline(token)
 
 		pendingStatus := e2etest.Status{
 			ID:          ID,
@@ -99,5 +102,6 @@ func Hook(api *github.API, tokenDao e2etest.TokenDAO, publicURL string) http.Han
 		}
 
 		log.Println("Got webhook", event)
+		go e2etest.Main(pipeline, owner, name, ID)
 	})
 }
